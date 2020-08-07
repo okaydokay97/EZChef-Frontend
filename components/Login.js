@@ -35,7 +35,6 @@ export class Login extends Component {
   };
 
   handleLogin = () => {
-    console.log(this.props)
     let value = this.refs.login.getValue();
     if (!value) {
       return (
@@ -46,6 +45,8 @@ export class Login extends Component {
         username: value.username,
         password: value.password,
       });
+      this.props.addCurrentUser(this.state)
+      console.log(this.props.currentUser)
       this.props.navigation.navigate("Pantry");
     }
   };
@@ -129,5 +130,11 @@ const mapDispatchToProps = {
   addCurrentUser
 }
 
+const mapStateToProps = (state) => {
+  return {
+    currentUser: state.currentUser
+  }
+}
 
-export default connect(null, mapDispatchToProps)(Login)
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login)
