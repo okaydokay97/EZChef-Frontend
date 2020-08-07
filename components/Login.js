@@ -1,5 +1,14 @@
 import React, { Component } from "react";
-import { View, Text, Image, Button, StyleSheet } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  Image,
+  Button,
+} from "react-native";
+import { connect } from 'react-redux'
+import { addCurrentUser } from '../actions/addCurrentUser'
+import styles from '../styles/styles'
 import t from "tcomb-form-native";
 
 let logo = {
@@ -7,7 +16,7 @@ let logo = {
     "https://cdn.pixabay.com/photo/2020/07/16/19/11/chef-5412009_960_720.png",
 };
 
-export default class Login extends Component {
+export class Login extends Component {
   constructor() {
     super();
     this.handleLogin = this.handleLogin.bind(this);
@@ -26,11 +35,19 @@ export default class Login extends Component {
   };
 
   handleLogin = () => {
+    console.log(this.props)
     let value = this.refs.login.getValue();
-    this.setState({
-      username: value.username,
-      password: value.password,
-    });
+    if (!value) {
+      return (
+        alert("All Fields Must be filled")
+      )
+    } else {
+      this.setState({
+        username: value.username,
+        password: value.password,
+      });
+      this.props.navigation.navigate("Pantry");
+    }
   };
 
   handleSignup = () => {
@@ -46,9 +63,10 @@ export default class Login extends Component {
 
   renderLogin = () => {
     return (
-      <View>
+      <SafeAreaView>
         <Text style={styles.title}>EZChef</Text>
         <Image source={logo} style={styles.img} />
+        <View />
         <Form ref="login" type={User} />
         <Button
           onPress={this.handleLogin}
@@ -60,13 +78,13 @@ export default class Login extends Component {
           title="Sign up"
           style={styles.button}
         />
-      </View>
+      </SafeAreaView>
     );
   };
 
   renderSignup = () => {
     return (
-      <View>
+      <SafeAreaView>
         <Text style={styles.title}>EZChef</Text>
         <Image source={logo} style={styles.img} />
         <Form ref="signup" type={Signup} />
@@ -80,7 +98,7 @@ export default class Login extends Component {
           title="Back to login"
           style={styles.button}
         />
-      </View>
+      </SafeAreaView>
     );
   };
 
@@ -107,21 +125,9 @@ const Signup = t.struct({
   confirmPassword: t.String,
 });
 
-const styles = StyleSheet.create({
-  button: {
-    borderWidth: 2,
-  },
-  title: {
-    fontSize: 30,
-    paddingBottom: 20,
-    fontWeight: "bold",
-    margin: "auto",
-    textAlign: "center",
-  },
-  img: {
-    width: 163,
-    height: 200,
-    resizeMode: "stretch",
-    margin: 5,
-  },
-});
+const mapDispatchToProps = {
+  addCurrentUser
+}
+
+
+export default connect(null, mapDispatchToProps)(Login)
