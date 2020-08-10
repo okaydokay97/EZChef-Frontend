@@ -5,6 +5,7 @@ import {
   Text,
   Image,
   Button,
+  TextInput
 } from "react-native";
 import { connect } from 'react-redux'
 import { addCurrentUser } from '../actions/addCurrentUser'
@@ -23,10 +24,6 @@ export class Login extends Component {
     this.handleSignup = this.handleSignup.bind(this);
     this.state = {
       signupPressed: false,
-      username: "",
-      password: "",
-      confirmPassword: "",
-      email: "",
     };
   }
 
@@ -34,32 +31,38 @@ export class Login extends Component {
     this.setState({ signupPressed: !this.state.signupPressed });
   };
 
-  handleLogin = () => {
+  handleLogin = async () => {
     let value = this.refs.login.getValue();
     if (!value) {
       return (
         alert("All Fields Must be filled")
       )
     } else {
-      this.setState({
-        username: value.username,
-        password: value.password,
-      });
-      this.props.addCurrentUser(this.state)
-      console.log(this.props.currentUser)
-      this.props.navigation.navigate("Pantry");
+      await fetch('http://localhost:3000/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(value)
+      })
+        .then(resp => resp.json())
+        .then(data => {
+          if (data.error) {
+            alert(data.error)
+          } else {
+            this.props.addCurrentUser(data)
+          }
+        })
+
+      // console.log(this.props.currentUser)
+      this.props.navigation.navigate("Pantry")
     }
   };
 
+
+
   handleSignup = () => {
     let value = this.refs.signup.getValue();
-    console.log(value);
-    this.setState({
-      email: value.email,
-      username: value.username,
-      password: value.password,
-      confirmPassword: value.confirmPassword,
-    });
   };
 
   renderLogin = () => {
@@ -68,7 +71,7 @@ export class Login extends Component {
         <Text style={styles.title}>EZChef</Text>
         <Image source={logo} style={styles.img} />
         <View />
-        <Form ref="login" type={User} />
+        <Form ref="login" type={User} options={options} />
         <Button
           onPress={this.handleLogin}
           title="Login"
@@ -114,6 +117,18 @@ export class Login extends Component {
 
 const Form = t.form.Form;
 
+const options = {
+  fields: {
+    username: {
+      autoCapitalize: 'none'
+    },
+    password: {
+      secureTextEntry: true,
+      autoCapitalize: 'none'
+    }
+  }
+}
+
 const User = t.struct({
   username: t.String,
   password: t.String,
@@ -131,10 +146,7 @@ const mapDispatchToProps = {
 }
 
 const mapStateToProps = (state) => {
-  return {
-    currentUser: state.currentUser
-  }
+  return { currentUser: state.currentUser }
 }
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login)

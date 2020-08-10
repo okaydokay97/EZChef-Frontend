@@ -8,7 +8,8 @@ export default class AddIngredients extends Component {
   constructor() {
     super()
     this.state = {
-      searchQuery: ''
+      searchQuery: '',
+      ingredients: []
     }
   }
   render() {
@@ -25,16 +26,37 @@ export default class AddIngredients extends Component {
     );
   }
 
-  handleSubmit = () => {
-    console.log('hello')
-  }
 
   handleSearch = () => {
-    console.log('hello')
+    fetch('http://localhost:3000/ingredients_filter', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(this.state.searchQuery)
+    })
+      .then(resp => resp.json())
+      .then(ingredients => {
+        console.log(ingredients)
+        if (!ingredients[0]) {
+          fetch(`https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&query=${this.state.searchQuery}&number=5&metaInformation=true`)
+            .then(resp => resp.json())
+            .then(data => {
+              fetch('http://localhost:3000/ingredients', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+              })
+            })
+        } else {
+          console.log(ingredients)
+        }
+      })
   }
 
   handleChangeText = (event) => {
-    console.log(event)
     this.setState({
       searchQuery: event
     })
