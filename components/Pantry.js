@@ -1,6 +1,8 @@
 import React, { Component } from "react";
-import { Image, FlatList, Text, SafeAreaView, View } from "react-native";
+import { Image, ScrollView, Text, SafeAreaView, View } from "react-native";
 import { connect } from 'react-redux'
+import { Card, ListItem, Button, Icon } from 'react-native-elements'
+
 
 export class Pantry extends Component {
   constructor(props) {
@@ -10,47 +12,31 @@ export class Pantry extends Component {
     }
   }
 
-  componentDidMount() {
-    if (this.props.currentUser) {
-      fetch('http://localhost:3000/pantry_ingredients_filter', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(this.props.currentUser.id)
-      })
-        .then(resp => resp.json())
-        .then(ingredients => {
-          this.setState({
-            ingredients: ingredients
-          })
-        })
-    }
+  handleDetails = (i) => {
+    console.log(i)
   }
-
-
 
   render() {
-    if (this.state.ingredients === []) {
-      return (
-        <View>
-          <Text>Ingredients: </Text>
-        </View>
-      )
-    } else {
-      console.log(this.state.ingredients.length)
-      return (
-        <SafeAreaView>
-          <FlatList
-            data={this.state.ingredients}
-            renderItem={({ item }) => (<Item name={item.name} />)}
-            keyExtractor={item => item.id}
-          />
-        </SafeAreaView>
-      );
-    }
+    return (
+      <SafeAreaView>
+        <ScrollView>
+          {this.props.pantryIngredients.map((i, index) => {
+            return (
+              <Card key={index} containerStyle={{ padding: 0 }}>
+                <ListItem
+                  roundAvatar
+                  title={i.name}
+                  leftAvatar={{ source: { uri: `https://spoonacular.com/cdn/ingredients_100x100/${i.image}` } }}
+                  rightAvatar={<Button onPress={() => this.handleDetails(i)} title='>' />}
+                />
+              </Card>)
+          })}
+        </ScrollView>
+      </SafeAreaView>
+    );
   }
 }
+
 
 const Item = ({ name }) => {
   return (
@@ -63,7 +49,8 @@ const Item = ({ name }) => {
 
 const mapStateToProps = (state) => {
   return {
-    currentUser: state.currentUser
+    currentUser: state.currentUser,
+    pantryIngredients: state.pantryIngredients
   }
 }
 

@@ -1,21 +1,13 @@
 import React, { Component } from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  Image,
-  Button,
-  TextInput
-} from "react-native";
+import { SafeAreaView, View, Text, Image } from "react-native";
+import { Button, ThemeProvider } from 'react-native-elements'
 import { connect } from 'react-redux'
 import { addCurrentUser } from '../actions/addCurrentUser'
+import { addPantryIngredients } from '../actions/addPantryIngredients'
 import styles from '../styles/styles'
 import t from "tcomb-form-native";
 
-let logo = {
-  uri:
-    "https://cdn.pixabay.com/photo/2020/07/16/19/11/chef-5412009_960_720.png",
-};
+let logo = { uri: "https://cdn.pixabay.com/photo/2020/07/16/19/11/chef-5412009_960_720.png" };
 
 export class Login extends Component {
   constructor() {
@@ -46,17 +38,29 @@ export class Login extends Component {
         body: JSON.stringify(value)
       })
         .then(resp => resp.json())
-        .then(data => {
+        .then(async data => {
           if (data.error) {
             alert(data.error)
           } else {
-            this.props.addCurrentUser(data)
+            await this.props.addCurrentUser(data)
           }
         })
 
       // console.log(this.props.currentUser)
-      this.props.navigation.navigate("Pantry")
+      // this.props.navigation.navigate("Pantry")
     }
+    fetch('http://localhost:3000/pantry_ingredients_filter', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(this.props.currentUser.id)
+    })
+      .then(resp => resp.json())
+      .then(async ingredients => {
+        await this.props.addPantryIngredients(ingredients)
+        this.props.navigation.navigate("Pantry")
+      })
   };
 
 
@@ -92,16 +96,18 @@ export class Login extends Component {
         <Text style={styles.title}>EZChef</Text>
         <Image source={logo} style={styles.img} />
         <Form ref="signup" type={Signup} />
-        <Button
-          onPress={this.handleSignup}
-          title="Create account"
-          style={styles.button}
-        />
-        <Button
-          onPress={this.handleOnPress}
-          title="Back to login"
-          style={styles.button}
-        />
+        <ThemeProvider>
+          <Button
+            onPress={this.handleSignup}
+            title="Create account"
+            style={styles.button}
+          />
+          <Button
+            onPress={this.handleOnPress}
+            title="Back to login"
+            style={styles.button}
+          />
+        </ThemeProvider>
       </SafeAreaView>
     );
   };
@@ -142,11 +148,15 @@ const Signup = t.struct({
 });
 
 const mapDispatchToProps = {
-  addCurrentUser
+  addCurrentUser,
+  addPantryIngredients
 }
 
 const mapStateToProps = (state) => {
-  return { currentUser: state.currentUser }
+  return {
+    currentUser: state.currentUser,
+    pantryIngredients: state.pantryIngredients
+  }
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login)
