@@ -42,13 +42,24 @@ class AddIngredients extends Component {
           />
           <ScrollView>
             {this.state.ingredients.map((i, index) => {
+              let titleCased = i.name.split(' ').map((a) => `${a[0].toUpperCase() + a.slice(1)}`).join(' ')
               return (
                 <Card key={index} containerStyle={{ padding: 0 }}>
                   <ListItem
                     roundAvatar
-                    title={i.name}
+                    title={titleCased}
                     leftAvatar={{ source: { uri: `https://spoonacular.com/cdn/ingredients_100x100/${i.image}` } }}
-                    rightAvatar={<Button onPress={() => this.handleAdd(i)} title='+' />}
+                    rightAvatar={
+                      <Button
+                        buttonStyle={{ height: 80, width: 80, margin: -20 }}
+                        onPress={() => this.handleAdd(i)}
+                        icon={<Icon
+                          size='35'
+                          name='plus-circle'
+                          color='white'
+                          type='feather'
+                        />}
+                      />}
                   />
                 </Card>)
             })}
@@ -90,6 +101,7 @@ class AddIngredients extends Component {
     })
       .then(resp => resp.json())
       .then(async foundIngredients => {
+        console.log(foundIngredients)
         if (foundIngredients.length < 20) {
           fetch(`https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&query=${this.state.searchQuery}&number=20&metaInformation=true`)
             .then(resp => resp.json())

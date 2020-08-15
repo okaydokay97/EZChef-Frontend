@@ -45,9 +45,6 @@ export class Login extends Component {
             await this.props.addCurrentUser(data)
           }
         })
-
-      // console.log(this.props.currentUser)
-      // this.props.navigation.navigate("Pantry")
     }
     fetch('http://localhost:3000/pantry_ingredients_filter', {
       method: 'POST',
@@ -59,7 +56,7 @@ export class Login extends Component {
       .then(resp => resp.json())
       .then(async ingredients => {
         await this.props.addPantryIngredients(ingredients)
-        this.props.navigation.navigate("Pantry")
+        this.props.navigation.replace("Pantry")
       })
   };
 
@@ -67,6 +64,28 @@ export class Login extends Component {
 
   handleSignup = () => {
     let value = this.refs.signup.getValue();
+    if (!value) {
+      alert("All Fields Must be filled")
+    } else if (value.password !== value.confirmPassword) {
+      alert('Passwords Did Not Match')
+    } else {
+      fetch('http://localhost:3000/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(value)
+      })
+        .then(resp => resp.json())
+        .then(async newUser => {
+          await this.props.addCurrentUser({
+            id: newUser.id,
+            username: newUser.username
+          })
+          this.props.navigation.navigate("Pantry")
+        })
+    }
+
   };
 
   renderLogin = () => {
@@ -75,13 +94,22 @@ export class Login extends Component {
         <Text style={styles.title}>EZChef</Text>
         <Image source={logo} style={styles.img} />
         <View />
-        <Form ref="login" type={User} options={options} />
+        <View style={{ margin: 15 }}>
+          <Form
+            ref="login"
+            type={User}
+            options={options}
+          />
+        </View>
         <Button
+          buttonStyle={{ width: 125, alignSelf: 'center' }}
           onPress={this.handleLogin}
           title="Login"
           style={styles.button}
         />
+        <Text></Text>
         <Button
+          buttonStyle={{ width: 125, alignSelf: 'center' }}
           onPress={this.handleOnPress}
           title="Sign up"
           style={styles.button}
@@ -90,19 +118,29 @@ export class Login extends Component {
     );
   };
 
+
   renderSignup = () => {
     return (
       <SafeAreaView>
         <Text style={styles.title}>EZChef</Text>
         <Image source={logo} style={styles.img} />
-        <Form ref="signup" type={Signup} />
+        <View style={{ margin: 15 }}>
+          <Form
+            ref="signup"
+            type={Signup}
+            options={options}
+          />
+        </View>
         <ThemeProvider>
           <Button
+            buttonStyle={{ width: 125, alignSelf: 'center' }}
             onPress={this.handleSignup}
-            title="Create account"
+            title="Create Account"
             style={styles.button}
           />
+          <Text></Text>
           <Button
+            buttonStyle={{ width: 125, alignSelf: 'center' }}
             onPress={this.handleOnPress}
             title="Back to login"
             style={styles.button}
@@ -125,10 +163,18 @@ const Form = t.form.Form;
 
 const options = {
   fields: {
+    email: {
+      autoCapitalize: 'none',
+    },
     username: {
+      margin: '4px',
       autoCapitalize: 'none'
     },
     password: {
+      secureTextEntry: true,
+      autoCapitalize: 'none'
+    },
+    confirmPassword: {
       secureTextEntry: true,
       autoCapitalize: 'none'
     }

@@ -40,7 +40,7 @@ export default function App() {
               headerLeft: null,
               headerRight: () => (
                 <Button
-                  onPress={() => navigation.navigate("Pantry")}
+                  onPress={() => navigation.replace("Pantry")}
                   title="Pantry"
                 />
               ),
@@ -52,7 +52,7 @@ export default function App() {
             options={({ navigation, route }) => ({
               headerLeft: () => (
                 <Button
-                  onPress={() => navigation.navigate("Pantry")}
+                  onPress={() => navigation.replace("Pantry")}
                   title="Pantry"
                 />
               ),
@@ -65,13 +65,13 @@ export default function App() {
             options={({ navigation, route }) => ({
               headerLeft: () => (
                 <Button
-                  onPress={() => navigation.navigate("Add Ingredients")}
+                  onPress={() => navigation.replace("Add Ingredients")}
                   title="Add Ingredients"
                 />
               ),
               headerRight: () => (
                 <Button
-                  onPress={() => navigation.navigate("Recipes")}
+                  onPress={() => navigation.replace("Recipes")}
                   title="Recipes"
                 />
               ),
