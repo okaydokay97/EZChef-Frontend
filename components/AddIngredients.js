@@ -18,6 +18,7 @@ class AddIngredients extends Component {
   }
 
   render() {
+
     if (this.state.ingredients.length === 0) {
       return (
         <SafeAreaView>

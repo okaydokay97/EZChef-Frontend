@@ -4,6 +4,7 @@ import { Button, ThemeProvider } from 'react-native-elements'
 import { connect } from 'react-redux'
 import { addCurrentUser } from '../actions/addCurrentUser'
 import { addPantryIngredients } from '../actions/addPantryIngredients'
+import { addAllFavoritedRecipes } from '../actions/addAllFavoritedRecipes'
 import styles from '../styles/styles'
 import t from "tcomb-form-native";
 
@@ -56,8 +57,19 @@ export class Login extends Component {
       .then(resp => resp.json())
       .then(async ingredients => {
         await this.props.addPantryIngredients(ingredients)
-        this.props.navigation.replace("Pantry")
       })
+    fetch('http://localhost:3000/favorite_recipes_login_filter', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 'userId': this.props.currentUser.id })
+    })
+      .then(resp => resp.json())
+      .then(recipes => {
+        this.props.addAllFavoritedRecipes(recipes.map((r) => r.name))
+      })
+    this.props.navigation.replace("Pantry")
   };
 
 
@@ -82,7 +94,7 @@ export class Login extends Component {
             id: newUser.id,
             username: newUser.username
           })
-          this.props.navigation.navigate("Pantry")
+          this.props.navigation.replace("Pantry")
         })
     }
 
@@ -195,7 +207,8 @@ const Signup = t.struct({
 
 const mapDispatchToProps = {
   addCurrentUser,
-  addPantryIngredients
+  addPantryIngredients,
+  addAllFavoritedRecipes
 }
 
 const mapStateToProps = (state) => {

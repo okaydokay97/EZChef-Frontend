@@ -75,7 +75,7 @@ export class Pantry extends Component {
                   />
                 </Card>
               </View>
-              <View>
+              <View >
                 <Card key={index} containerStyle={{ padding: 0 }}>
                   <ListItem
                     roundAvatar
@@ -119,7 +119,7 @@ const mapStateToProps = (state) => {
   return {
     currentUser: state.currentUser,
     pantryIngredients: state.pantryIngredients,
-    checkedItems: state.checkedItems
+    checkedItems: state.checkedItems,
   }
 }
 
