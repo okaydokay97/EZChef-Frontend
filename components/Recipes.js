@@ -25,8 +25,16 @@ export class Recipes extends Component {
   }
 
 
+  getCheckedRecipes = () => {
+    let checkedString = this.props.checkedItems.map((item) => item.split(' ').join('+')).join(',')
+    fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&includeIngredients=${checkedString}&number=10`)
+      .then(resp => resp.json())
+      .then(data => this.setState({ recipes: data.results }))
+  }
+
+
   getRandomRecipes = () => {
-    fetch('https://api.spoonacular.com/recipes/random?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&number=3')
+    fetch('https://api.spoonacular.com/recipes/random?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&number=20')
       .then(resp => resp.json())
       .then(data => this.setState({ recipes: data.recipes }))
   }
@@ -76,20 +84,19 @@ export class Recipes extends Component {
     }
   }
 
-  filterRecipes = () => {
-    switch (this.props.filterRecipes) {
+  filterRecipes = (filter) => {
+    switch (filter) {
       case 'favorite':
-        console.log('hello')
+        return this.getFavoriteRecipes()
       case 'random':
-
+        return this.getRandomRecipes()
       case 'checked':
-        return
+        return this.getCheckedRecipes()
 
     }
   }
 
   render() {
-    this.filterRecipes()
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
@@ -125,16 +132,19 @@ export class Recipes extends Component {
         <View style={{
           backgroundColor: 'white',
           flex: .12,
-          borderTopColor: 'gray',
+          borderTopColor: '#147efb',
           borderTopWidth: 1.25,
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'stretch'
         }}>
           <Button
-            onPress={() => this.props.favoriteFilter('favorite')}
-            buttonStyle={{ flexGrow: 2, width: 135, backgroundColor: 'white', borderRightWidth: 2, borderColor: 'gray', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+            type='outline'
+            onPress={() => this.filterRecipes('favorite')}
             style={{ flexGrow: 2 }}
+            buttonStyle={{
+              flexGrow: 2, width: 135, borderRightWidth: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, backgroundColor: ''
+            }}
             icon={{
               name: 'heart',
               type: 'antdesign',
@@ -143,8 +153,9 @@ export class Recipes extends Component {
             }}
           ></Button>
           <Button
-            onPress={() => this.props.randomFilter('random')}
-            buttonStyle={{ flexGrow: 2, width: 146, backgroundColor: 'white', borderRightWidth: 2, borderColor: 'gray', borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
+            type='outline'
+            onPress={() => this.filterRecipes('random')}
+            buttonStyle={{ flexGrow: 2, width: 146, borderRightWidth: 1, borderTopRightRadius: 0, borderBottomRightRadius: 0, borderBottomLeftRadius: 0, borderTopLeftRadius: 0, borderLeftWidth: 1 }}
             style={{ flexGrow: 2 }}
             icon={{
               name: 'random',
@@ -154,8 +165,9 @@ export class Recipes extends Component {
             }}
           ></Button>
           <Button
-            onPress={() => this.props.checkedFilter('checked')}
-            buttonStyle={{ flexGrow: 2, width: 138, backgroundColor: 'white' }}
+            type='outline'
+            onPress={() => this.filterRecipes('checked')}
+            buttonStyle={{ flexGrow: 2, width: 138, borderLeftWidth: 1, borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
             style={{ flexGrow: 2 }}
             icon={{
               name: 'checkbox',
@@ -165,7 +177,7 @@ export class Recipes extends Component {
             }}
           ></Button>
         </View>
-      </View>
+      </View >
     );
   }
 
