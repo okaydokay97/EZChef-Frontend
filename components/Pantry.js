@@ -20,7 +20,6 @@ export class Pantry extends Component {
 
   handleRemove = async (i) => {
     ingredientUserData = { ingredientId: i.id, userId: this.props.currentUser.id }
-    // console.log(ingredientUserData)
     await fetch(`http://localhost:3000/pantry_ingredients/${i.id}`, {
       method: 'DELETE',
       headers: {

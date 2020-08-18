@@ -10,8 +10,7 @@ export default function pantryIngredientsReducer(state = [], action) {
       return [...state, action.pantryIngredient]
 
     case 'REMOVE_PANTRY_INGREDIENT':
-      console.log('hello')
-      return state.filter((i) => i !== action.pantryIngredient)
+      return state.filter((ingredient) => ingredient.id !== action.pantryIngredient.id)
 
     default:
       return state;

@@ -5,6 +5,7 @@ import styles from '../styles/styles'
 import { Searchbar, List } from 'react-native-paper'
 import { Card, ListItem, Button, Icon } from 'react-native-elements'
 import { addPantryIngredient } from '../actions/addPantryIngredient'
+import { removePantryIngredient } from '../actions/removePantryIngredient'
 
 
 class AddIngredients extends Component {
@@ -52,14 +53,9 @@ class AddIngredients extends Component {
                     leftAvatar={{ source: { uri: `https://spoonacular.com/cdn/ingredients_100x100/${i.image}` } }}
                     rightAvatar={
                       <Button
-                        buttonStyle={{ height: 80, width: 80, margin: -20 }}
+                        buttonStyle={{ height: 80, width: 80, margin: -20, backgroundColor: this.renderButtonColor(i) }}
                         onPress={() => this.handleAdd(i)}
-                        icon={<Icon
-                          size='35'
-                          name='plus-circle'
-                          color='white'
-                          type='feather'
-                        />}
+                        icon={this.renderIcon(i)}
                       />}
                   />
                 </Card>)
@@ -71,6 +67,35 @@ class AddIngredients extends Component {
   }
 
 
+  renderButtonColor = (ingredient) => {
+    if (this.props.pantryIngredients.map((i) => i.name).filter((pi) => pi === ingredient.name).length === 1) {
+      return 'red'
+    } else {
+      return '#147efb'
+    }
+  }
+
+  renderIcon = (ingredient) => {
+    if (this.props.pantryIngredients.map((i) => i.name).filter((pi) => pi === ingredient.name).length === 1) {
+      return (
+        < Icon
+          size={35}
+          name='trash'
+          color='white'
+          type='evilicon'
+        />
+      )
+    } else {
+      return (
+        < Icon
+          size={35}
+          name='plus-circle'
+          color='white'
+          type='feather'
+        />
+      )
+    }
+  }
 
   handleAdd = (ingredient) => {
     ingredient.currentUser = this.props.currentUser
@@ -84,7 +109,16 @@ class AddIngredients extends Component {
       .then(resp => resp.json())
       .then(async ingredient => {
         if (ingredient.error) {
-          alert(ingredient.error)
+          let ingredientUserData = { ingredientId: ingredient.ingredient_id, userId: ingredient.user_id }
+          await fetch(`http://localhost:3000/pantry_ingredients/${ingredient.pantry_id}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(ingredientUserData)
+          })
+          this.props.removePantryIngredient(ingredient.ingredient_object)
+
         } else {
           await this.props.addPantryIngredient(ingredient)
         }
@@ -102,7 +136,7 @@ class AddIngredients extends Component {
     })
       .then(resp => resp.json())
       .then(async foundIngredients => {
-        console.log(foundIngredients)
+        // console.log(foundIngredients)
         if (foundIngredients.length < 20) {
           fetch(`https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&query=${this.state.searchQuery}&number=20&metaInformation=true`)
             .then(resp => resp.json())
@@ -143,12 +177,13 @@ class AddIngredients extends Component {
 const mapStateToProps = (state) => {
   return {
     currentUser: state.currentUser,
-    pantry_ingredients: state.pantry_ingredients
+    pantryIngredients: state.pantryIngredients
   }
 }
 
 const mapDispatchToProps = {
-  addPantryIngredient
+  addPantryIngredient,
+  removePantryIngredient
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddIngredients)

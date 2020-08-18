@@ -126,10 +126,10 @@ export class Recipes extends Component {
                 color: '#147efb'
               }}
               type='clear'
-              style={{ alignSelf: 'flex-end', width: 68, margin: 10 }}
+              style={{ alignSelf: 'flex-end', width: 68, margin: 10, marginBottom: -10 }}
               onPress={() => this.setState({ showRecipe: !this.state.showRecipe })}
             ></Button>
-            <ScrollView contentContainerStyle={{ justifyContent: 'center', marginTop: -30 }}>
+            <ScrollView contentContainerStyle={{ justifyContent: 'center', marginTop: -35 }}>
               <Text style={{ fontSize: 30, textAlign: 'center', margin: 30 }}>
                 {this.state.recipeTitle}
               </Text>
@@ -137,18 +137,19 @@ export class Recipes extends Component {
                 source={{ uri: this.state.recipeImage }}
                 style={{ width: 350, height: 200, alignSelf: 'center' }}
               />
+              <View style={{ borderTopWidth: 1.5, marginTop: 13, marginBottom: -15, borderTopColor: '#b2beb5' }}></View>
               <Text style={{
                 paddingTop: 30,
                 paddingBottom: 15,
                 marginLeft: -150,
                 textAlign: 'center',
                 fontSize: 25,
-                fontWeight: '450'
+                fontWeight: '400'
               }}
               >
                 Ingredients
                 </Text>
-              <View style={{ width: 300, flexDirection: 'column', marginLeft: 100 }}>
+              <View style={{ width: 300, flexDirection: 'column', marginLeft: 90 }}>
                 {this.state.recipeInstructions.map((steps) => {
                   const a = []
                   const allIngredients = a.concat(steps.map((step) => {
@@ -177,10 +178,29 @@ export class Recipes extends Component {
                   })
                   return allShow
                 })}
-
-
               </View>
+              <View style={{ borderTopWidth: 1.5, marginTop: 5, marginBottom: -5, borderTopColor: '#b2beb5', width: 180, alignSelf: 'center' }}></View>
+              <Text style={{
+                paddingTop: 20,
+                paddingBottom: 15,
+                marginLeft: -150,
+                textAlign: 'center',
+                fontSize: 25,
+                fontWeight: '400'
+              }}>
+                Instructions
+              </Text>
+              <View style={{ width: 300, flexDirection: 'column', marginLeft: 90 }}>
+                {this.state.recipeInstructions.map((steps) => {
+                  const a = []
+                  return steps.map((step, index) => {
+                    return (
+                      <ListItem title={`${index + 1}) ` + `${step.step}`} key={index} />
+                    )
+                  })
 
+                })}
+              </View>
             </ScrollView>
           </SafeAreaView>
         </Modal>
@@ -267,7 +287,7 @@ export class Recipes extends Component {
 
   clickRecipes = (recipeId, image, title) => {
     console.log(recipeId)
-    fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef`)
+    fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff`)
       .then(resp => resp.json())
       .then(recipeInstructions =>
         this.setState({
