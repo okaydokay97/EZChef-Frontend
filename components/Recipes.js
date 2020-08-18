@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Image, FlatList, Text, SafeAreaView, View } from "react-native";
+import { Image, FlatList, Text, SafeAreaView, View, Modal } from "react-native";
 import { connect } from 'react-redux'
 import { Searchbar, Avatar, Card, Title, Paragraph } from 'react-native-paper'
 import { ListItem, Icon, Button } from 'react-native-elements'
@@ -16,6 +16,11 @@ export class Recipes extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      showRecipe: false,
+      recipeTitle: null,
+      recipeId: null,
+      recipeInstructions: [],
+      recipeImage: null,
       favorites: false,
       random: false,
       checked: false,
@@ -26,10 +31,15 @@ export class Recipes extends Component {
 
 
   getCheckedRecipes = () => {
-    let checkedString = this.props.checkedItems.map((item) => item.split(' ').join('+')).join(',')
-    fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&includeIngredients=${checkedString}&number=10`)
-      .then(resp => resp.json())
-      .then(data => this.setState({ recipes: data.results }))
+    if (this.props.checkedItems.length > 0) {
+      let checkedString = this.props.checkedItems.map((item) => item.split(' ').join('+')).join(',')
+      fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&includeIngredients=${checkedString}&number=10`)
+        .then(resp => resp.json())
+        .then(data => this.setState({ recipes: data.results }))
+    }
+    else {
+      return
+    }
   }
 
 
@@ -99,6 +109,81 @@ export class Recipes extends Component {
   render() {
     return (
       <View style={{ flex: 1 }}>
+        <Modal
+          animationType='slide'
+          visible={this.state.showRecipe}
+          onRequestClose={() => {
+            Alert.alert("Modal has been closed.");
+          }}
+        >
+          <SafeAreaView
+            style={{ flex: 1 }}>
+            <Button
+              icon={{
+                name: 'closecircleo',
+                type: 'ant-design',
+                size: 42,
+                color: '#147efb'
+              }}
+              type='clear'
+              style={{ alignSelf: 'flex-end', width: 68, margin: 10 }}
+              onPress={() => this.setState({ showRecipe: !this.state.showRecipe })}
+            ></Button>
+            <ScrollView contentContainerStyle={{ justifyContent: 'center', marginTop: -30 }}>
+              <Text style={{ fontSize: 30, textAlign: 'center', margin: 30 }}>
+                {this.state.recipeTitle}
+              </Text>
+              <Image
+                source={{ uri: this.state.recipeImage }}
+                style={{ width: 350, height: 200, alignSelf: 'center' }}
+              />
+              <Text style={{
+                paddingTop: 30,
+                paddingBottom: 15,
+                marginLeft: -150,
+                textAlign: 'center',
+                fontSize: 25,
+                fontWeight: '450'
+              }}
+              >
+                Ingredients
+                </Text>
+              <View style={{ width: 300, flexDirection: 'column', marginLeft: 100 }}>
+                {this.state.recipeInstructions.map((steps) => {
+                  const a = []
+                  const allIngredients = a.concat(steps.map((step) => {
+                    return step.ingredients.map((ingredient) => {
+                      if (ingredient.id !== 0) {
+                        return (
+                          ingredient.name
+                        )
+                      }
+                    })
+                  })).flat()
+                  const unique = (value, index, self) => {
+                    return self.indexOf(value) === index
+                  }
+                  const uniqueIngredients = allIngredients.filter(unique)
+                  const allShow = uniqueIngredients.map((i, index) => {
+
+                    if (typeof i === 'undefined') {
+                      return null
+                    } else {
+                      let titleCased = "•  " + i.split(' ').map((a) => `${a[0].toUpperCase() + a.slice(1)}`).join(' ')
+                      return (
+                        <ListItem title={titleCased} key={index} style={{ marginTop: -15, }} titleStyle={{ fontSize: 15 }} />
+                      )
+                    }
+                  })
+                  return allShow
+                })}
+
+
+              </View>
+
+            </ScrollView>
+          </SafeAreaView>
+        </Modal>
         <ScrollView style={{ flex: 1 }}>
           <SafeAreaView>
             <Searchbar
@@ -111,7 +196,7 @@ export class Recipes extends Component {
             {this.state.recipes.map((recipe, index) => {
               return (
                 <View key={index}>
-                  <Card key={index} onPress={this.clickRecipes} style={{ padding: 0, margin: 10 }}>
+                  <Card key={index} onPress={() => this.clickRecipes(recipe.id, recipe.image, recipe.title)} style={{ padding: 0, margin: 10 }}>
                     <Card.Content>
                       <Title style={{ paddingBottom: 15 }}>{recipe.title}</Title>
                     </Card.Content>
@@ -122,7 +207,6 @@ export class Recipes extends Component {
                     </Card.Actions>
                   </Card>
                   <Text></Text>
-
                 </View>
               )
             })}
@@ -181,8 +265,18 @@ export class Recipes extends Component {
     );
   }
 
-  clickRecipes = () => {
-    console.log('recipe')
+  clickRecipes = (recipeId, image, title) => {
+    console.log(recipeId)
+    fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef`)
+      .then(resp => resp.json())
+      .then(recipeInstructions =>
+        this.setState({
+          recipeInstructions: recipeInstructions.map((i) => i.steps),
+          recipeTitle: title,
+          recipeId: recipeId,
+          recipeImage: image,
+          showRecipe: !this.state.showRecipe
+        }))
   }
 
   clickHeart = async (name, recipe) => {
