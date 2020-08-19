@@ -25,7 +25,8 @@ export class Recipes extends Component {
       random: false,
       checked: false,
       searchQuery: '',
-      recipes: []
+      recipes: [],
+      originals: []
     }
   }
 
@@ -35,7 +36,10 @@ export class Recipes extends Component {
       let checkedString = this.props.checkedItems.map((item) => item.split(' ').join('+')).join(',')
       fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&includeIngredients=${checkedString}&number=10`)
         .then(resp => resp.json())
-        .then(data => this.setState({ recipes: data.results }))
+        .then(data => this.setState({
+          recipes: data.results,
+          originals: data.results
+        }))
     }
     else {
       return
@@ -58,7 +62,10 @@ export class Recipes extends Component {
       body: JSON.stringify({ 'userId': this.props.currentUser.id })
     })
       .then(resp => resp.json())
-      .then(foundRecipes => this.setState({ recipes: foundRecipes.map((recipe) => recipe.content) }))
+      .then(foundRecipes => this.setState({
+        recipes: foundRecipes.map((recipe) => recipe.content),
+        originals: foundRecipes.map((recipe) => recipe.content)
+      }))
   }
 
   showIcon = (name, recipe) => {
@@ -97,12 +104,33 @@ export class Recipes extends Component {
   filterRecipes = (filter) => {
     switch (filter) {
       case 'favorite':
+        this.setState({
+          favorites: true,
+          random: false,
+          checked: false,
+          searchQuery: ''
+        })
         return this.getFavoriteRecipes()
       case 'random':
+        this.setState({
+          favorites: false,
+          random: true,
+          checked: false,
+          searchQuery: ''
+        })
         return this.getRandomRecipes()
       case 'checked':
-        return this.getCheckedRecipes()
-
+        if (this.props.checkedItems.length !== 0) {
+          this.setState({
+            favorites: false,
+            random: false,
+            checked: true,
+            searchQuery: ''
+          })
+          return this.getCheckedRecipes()
+        } else {
+          alert("Please Choose Items In Pantry")
+        }
     }
   }
 
@@ -204,15 +232,10 @@ export class Recipes extends Component {
             </ScrollView>
           </SafeAreaView>
         </Modal>
+        {this.renderSearchBar()}
         <ScrollView style={{ flex: 1 }}>
           <SafeAreaView>
-            <Searchbar
-              placeholder='Search recipes'
-              onChangeText={this.handleChangeText}
-              value={this.state.searchQuery}
-              onIconPress={this.handleSearch}
-              onBlur={this.handleSearch}
-            />
+
             {this.state.recipes.map((recipe, index) => {
               return (
                 <View key={index}>
@@ -337,10 +360,59 @@ export class Recipes extends Component {
     }
   }
 
+  renderSearchBar = () => {
+    if (this.state.checked === true) {
+      return (
+        <Searchbar
+          placeholder='Search pantry recipes'
+          onChangeText={this.handleChangeText}
+          value={this.state.searchQuery}
+          onIconPress={this.handleSearch}
+          onBlur={this.handleSearch}
+        />
+      )
+    } if (this.state.favorites === true) {
+      return (
+        <Searchbar
+          placeholder='Search favorite recipes'
+          onChangeText={this.handleChangeText}
+          value={this.state.searchQuery}
+          onIconPress={this.handleSearch}
+          onBlur={this.handleSearch}
+        />
+      )
+    } else {
+      return (
+        <Searchbar
+          placeholder='Search cuisines'
+          onChangeText={this.handleChangeText}
+          value={this.state.searchQuery}
+          onIconPress={this.handleSearch}
+          onBlur={this.handleSearch}
+        />
+      )
+    }
+  }
+
   handleChangeText = (event) => {
     this.setState({
       searchQuery: event
     })
+  }
+
+  handleSearch = () => {
+    if (this.state.favorites === true || this.state.checked === true) {
+      this.setState({
+        recipes: this.state.originals.filter((recipe) => recipe.title.toLowerCase().includes(this.state.searchQuery.toLowerCase()))
+      })
+    } if (this.state.random === true) {
+      fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&cuisine=${this.state.searchQuery}&number=20`)
+        .then(resp => resp.json())
+        .then(data => {
+          this.setState({ recipes: data.results })
+          // console.log(data)
+        })
+    }
   }
 
 }
