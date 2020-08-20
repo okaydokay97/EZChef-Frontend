@@ -28,6 +28,7 @@ export class Pantry extends Component {
       body: JSON.stringify(ingredientUserData)
     })
     this.props.removePantryIngredient(i)
+    if (this.swipeRowRef != null) this.swipeRowRef.closeRow();
   }
 
   handleCheck = (name) => {
@@ -53,6 +54,7 @@ export class Pantry extends Component {
           let titleCased = i.name.split(' ').map((a) => `${a[0].toUpperCase() + a.slice(1)}`).join(' ')
           return (
             <SwipeRow
+              ref={ref => this.swipeRowRef = ref}
               key={index}
               rightOpenValue={-80}
               stopLeftSwipe={1}

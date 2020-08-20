@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     margin: "auto",
     textAlign: "center",
+    marginTop: 30
   },
   img: {
     width: 163,

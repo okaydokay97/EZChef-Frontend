@@ -16,11 +16,12 @@ export class Recipes extends Component {
   constructor(props) {
     super(props)
     this.state = {
+      recipeIds: [],
       showRecipe: false,
       recipeTitle: null,
       recipeId: null,
       recipeInstructions: [],
-      recipeInfo: [],
+      recipesInfo: [],
       recipeImage: null,
       favorites: false,
       random: false,
@@ -32,15 +33,24 @@ export class Recipes extends Component {
   }
 
 
-  getCheckedRecipes = () => {
+  getCheckedRecipes = async () => {
     if (this.props.checkedItems.length > 0) {
       let checkedString = this.props.checkedItems.map((item) => item.split(' ').join('+')).join(',')
-      fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&includeIngredients=${checkedString}&number=10`)
+      await fetch(`https://api.spoonacular.com/recipes/complexSearch?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&includeIngredients=${checkedString}&number=10`)
         .then(resp => resp.json())
         .then(data => this.setState({
           recipes: data.results,
-          originals: data.results
+          originals: data.results,
+          recipeIds: data.results.map((recipe) => recipe.id)
         }))
+        .then(fetch(`https://api.spoonacular.com/recipes/informationBulk?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&ids=${this.state.recipeIds.join(',')}&includeNutrition=false`)
+          .then(resp => resp.json())
+          .then(recipeData => {
+            this.setState({
+              recipesInfo: recipeData
+            })
+          })
+        )
     }
     else {
       return
@@ -51,11 +61,15 @@ export class Recipes extends Component {
   getRandomRecipes = () => {
     fetch('https://api.spoonacular.com/recipes/random?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&number=20')
       .then(resp => resp.json())
-      .then(data => this.setState({ recipes: data.recipes }))
+      .then(data => this.setState({
+        recipes: data.recipes,
+        recipeInfo: data.recipes
+      }))
+
   }
 
-  getFavoriteRecipes = () => {
-    fetch('http://localhost:3000/favorite_recipes_login_filter', {
+  getFavoriteRecipes = async () => {
+    await fetch('http://localhost:3000/favorite_recipes_login_filter', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -63,11 +77,23 @@ export class Recipes extends Component {
       body: JSON.stringify({ 'userId': this.props.currentUser.id })
     })
       .then(resp => resp.json())
-      .then(foundRecipes => this.setState({
-        recipes: foundRecipes.map((recipe) => recipe.content),
-        originals: foundRecipes.map((recipe) => recipe.content)
-      }))
+      .then(foundRecipes => {
+        this.setState({
+          recipes: foundRecipes.map((recipe) => recipe.content),
+          originals: foundRecipes.map((recipe) => recipe.content),
+          recipeIds: foundRecipes.map((recipe) => recipe.content.id)
+        })
+      })
+    await fetch(`https://api.spoonacular.com/recipes/informationBulk?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&ids=${this.state.recipeIds.join(',')}&includeNutrition=false`)
+      .then(resp => resp.json())
+      .then(recipeData => {
+        this.setState({
+          recipesInfo: recipeData
+        })
+      })
   }
+
+
 
   showIcon = (name, recipe) => {
     if (this.props.favoritedRecipes.filter((added) => added === name).length === 0) {
@@ -111,7 +137,6 @@ export class Recipes extends Component {
           checked: false,
           searchQuery: ''
         })
-        this.scrollView.scrollTo({ x: 0, y: 0, animated: true })
         return this.getFavoriteRecipes()
       case 'random':
         this.setState({
@@ -120,7 +145,6 @@ export class Recipes extends Component {
           checked: false,
           searchQuery: ''
         })
-        this.scrollView.scrollTo({ x: 0, y: 0, animated: true })
         return this.getRandomRecipes()
       case 'checked':
         if (this.props.checkedItems.length !== 0) {
@@ -130,7 +154,6 @@ export class Recipes extends Component {
             checked: true,
             searchQuery: ''
           })
-          this.scrollView.scrollTo({ x: 0, y: 0, animated: true })
           return this.getCheckedRecipes()
         } else {
           alert("Please Choose Items In Pantry")
@@ -237,7 +260,7 @@ export class Recipes extends Component {
           </SafeAreaView>
         </Modal>
         {this.renderSearchBar()}
-        <ScrollView style={{ flex: 1 }} ref={(ref) => { this.scrollView = ref; }}>
+        <ScrollView style={{ flex: 1 }}>
           <SafeAreaView>
 
             {this.state.recipes.map((recipe, index) => {
@@ -249,8 +272,16 @@ export class Recipes extends Component {
                     </Card.Content>
                     <Card.Cover source={{ uri: recipe.image }} />
                     <Text></Text>
-                    <Card.Actions style={{ justifyContent: 'flex-end' }}>
-                      {this.showIcon(recipe.title, recipe)}
+                    <Card.Actions style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+
+                      <View style={{ borderWidth: 2, display: 'flex', flexDirection: 'row' }}>
+                        <Text>hi</Text>
+                        <Text>hi</Text>
+                      </View>
+                      <View style={{ display: 'flex', }}>
+                        {this.showIcon(recipe.title, recipe)}
+                      </View>
+
                     </Card.Actions>
                   </Card>
                   <Text></Text>
@@ -313,24 +344,14 @@ export class Recipes extends Component {
   }
 
   clickRecipes = (recipeId, image, title) => {
-    console.log(recipeId)
-    fetch(`https://api.spoonacular.com/recipes/${recipeId}/analyzedInstructions?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef`)
-      .then(resp => resp.json())
-      .then(recipeInstructions =>
-        this.setState({
-          recipeInstructions: recipeInstructions.map((i) => i.steps),
-          recipeTitle: title,
-          recipeId: recipeId,
-          recipeImage: image,
-          showRecipe: !this.state.showRecipe
-        }))
-    fetch(`https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&includeNutrition=false`)
-      .then(resp => resp.json())
-      .then(recipeData => {
-        this.setState({
-          recipeInfo: recipeData
-        })
-      })
+    const foundRecipe = this.state.recipesInfo.filter((r) => r.id === recipeId)[0]
+    this.setState({
+      recipeInstructions: foundRecipe.analyzedInstructions.map((i) => i.steps),
+      recipeTitle: title,
+      recipeId: recipeId,
+      recipeImage: image,
+      showRecipe: !this.state.showRecipe
+    })
   }
 
   clickHeart = async (name, recipe) => {

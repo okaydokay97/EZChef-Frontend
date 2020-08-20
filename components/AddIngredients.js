@@ -138,7 +138,7 @@ class AddIngredients extends Component {
       .then(async foundIngredients => {
         // console.log(foundIngredients)
         if (foundIngredients.length < 20) {
-          fetch(`https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=e399eab9a8694529b8ff1e1b1a0bf1ff&query=${this.state.searchQuery}&number=20&metaInformation=true`)
+          fetch(`https://api.spoonacular.com/food/ingredients/autocomplete?apiKey=8a8ce7fc21254cad9a60e2ec226a10ef&query=${this.state.searchQuery}&number=20&metaInformation=true`)
             .then(resp => resp.json())
             .then(data => {
               fetch('http://localhost:3000/ingredients', {
